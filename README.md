@@ -7,7 +7,8 @@ WhatsApp Chat Analyzer is an interactive data analytics web application built us
 The project performs message analysis, user activity analysis, emoji analysis, word frequency analysis, timeline tracking, and visual reporting through interactive charts and dashboards.
 
 ---
-
+## Live Demo
+https://whatsapp-chat-analysis-nymxez9uwqfvqhbgwkinyr.streamlit.app
 ## Problem Statement
 
 WhatsApp conversations contain a large amount of information, but manually identifying communication patterns, active users, popular words, and chat trends is difficult.
