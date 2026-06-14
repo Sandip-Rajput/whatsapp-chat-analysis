@@ -127,6 +127,7 @@ if uploaded_files:
     if st.sidebar.button("Show Analysis"):
 
         num_messages, words, num_media_messages, num_links = helper.fetch_stats(selected_user, df)
+
         deleted_count = helper.deleted_message_count(selected_user, df)
 
         st.title("📊 Top Statistics")
