@@ -5,88 +5,111 @@ from collections import Counter
 import emoji
 
 
-
 extract = URLExtract()
 
-def fetch_stats(selected_user,df):
 
+def fetch_stats(selected_user, df):
 
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
-# fetch the number of message
-    num_messages = df.shape[0]
-    # fetch the total number of words
-    words = []
-    for messsage in df['Message']:
-         words.extend(messsage.split())
 
-    # fetch number of media message
-    num_media_messages =df[df["Message"] == 'Media'].shape[0]
+    num_messages = df.shape[0]
+
+    words = []
+    for message in df['Message']:
+        words.extend(str(message).split())
+
+    num_media_messages = df[df["Message"] == 'Media'].shape[0]
 
     links = []
     for message in df['Message']:
-
-        links.extend(extract.find_urls(message))
+        links.extend(extract.find_urls(str(message)))
 
     return num_messages, len(words), num_media_messages, len(links)
 
+
 def most_busy_users(df):
-    x = df['User'].value_counts().head()
-    df= round((df['User'].value_counts()/ df.shape[0])*100, 2).reset_index().rename(columns={'index':'name','User':'percent'})
-    return x,df
+    x = df['User'].value_counts().head(10)
 
-def create_wordcloud(selected_user,df):
+    new_df = round(
+        (df['User'].value_counts() / df.shape[0]) * 100, 2
+    ).reset_index()
+
+    new_df.columns = ['User', 'Percent']
+
+    return x, new_df
 
 
-    f = open('stop_hinglish.txt', 'r')
+def create_wordcloud(selected_user, df):
 
-    stop_words = f.read()
+    try:
+        f = open('stop_hinglish.txt', 'r', encoding='utf-8')
+        stop_words = f.read()
+    except:
+        stop_words = ""
+
+    if selected_user != 'Overall':
+        df = df[df['User'] == selected_user]
+
+    temp = df[df['Message'] != 'Media'].copy()
+
+    def remove_stopwords(message):
+        y = []
+        for word in str(message).lower().split():
+            if word not in stop_words:
+                y.append(word)
+        return " ".join(y)
+
+    wc = WordCloud(
+        width=500,
+        height=500,
+        min_font_size=2,
+        background_color='white'
+    )
+
+    temp['Message'] = temp['Message'].apply(remove_stopwords)
+
+    if temp['Message'].str.cat(sep=" ").strip() == "":
+        return wc.generate("No Words Found")
+
+    df_wc = wc.generate(temp['Message'].str.cat(sep=" "))
+    return df_wc
+
+
+def most_common_words(selected_user, df):
+
+    try:
+        f = open('stop_hinglish.txt', 'r', encoding='utf-8')
+        stop_words = f.read()
+    except:
+        stop_words = ""
+
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
     temp = df[df['Message'] != 'Media']
 
-    def remove_stopwords(message):
-        y = []
-        for word in message.lower().split():
-            if word not in stop_words:
-                y.append(word)
-        return " ".join(y)
-
-    wc = WordCloud(width=500, height=500,min_font_size=2, background_color='white')
-
-    temp['Message'] = temp['Message'].apply(remove_stopwords)
-    df_wc= wc.generate(temp['Message'].str.cat(sep=" "))
-    return df_wc
-
-def most_common_words(selected_user,df):
-
-    f = open('stop_hinglish.txt' , 'r')
-
-    stop_words = f.read()
-    if selected_user != 'Overall':
-        df = df[df['User'] == selected_user]
-
-    temp= df[df['Message'] != 'Media']
-
     words = []
 
     for message in temp['Message']:
-        for word in message.lower().split():
+        for word in str(message).lower().split():
             if word not in stop_words:
                 words.append(word)
+
     most_common_df = pd.DataFrame(Counter(words).most_common(20))
+
     return most_common_df
 
 
 def emoji_helper(selected_user, df):
+
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
     emojis = []
 
     for message in df['Message']:
-        emojis.extend([c for c in message if c in emoji.EMOJI_DATA])
+        emojis.extend([c for c in str(message) if c in emoji.EMOJI_DATA])
 
     emoji_df = pd.DataFrame(
         Counter(emojis).most_common(),
@@ -96,21 +119,27 @@ def emoji_helper(selected_user, df):
     return emoji_df
 
 
-def monthly_timeline(selected_user,df):
+def monthly_timeline(selected_user, df):
+
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
-    timeline = df.groupby(['year', 'month_num', 'month']).count()['Message'].reset_index()
+    timeline = df.groupby(
+        ['year', 'month_num', 'month']
+    ).count()['Message'].reset_index()
+
+    timeline = timeline.sort_values(['year', 'month_num'])
 
     time = []
     for i in range(timeline.shape[0]):
-        time.append(timeline['month'][i] + "-" + str(timeline['year'][i]))
+        time.append(timeline['month'].iloc[i] + "-" + str(timeline['year'].iloc[i]))
 
     timeline['time'] = time
 
     return timeline
 
-def daily_timeline(selected_user,df):
+
+def daily_timeline(selected_user, df):
 
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
@@ -119,31 +148,119 @@ def daily_timeline(selected_user,df):
 
     return daily_timeline
 
-def week_activity_map(selected_user,df):
+
+def week_activity_map(selected_user, df):
 
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
     return df['day_name'].value_counts()
 
-def month_activity_map(selected_user,df):
+
+def month_activity_map(selected_user, df):
 
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
     return df['month'].value_counts()
 
-def activity_heatmap(selected_user,df):
+
+def activity_heatmap(selected_user, df):
 
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
-    user_heatmap = df.pivot_table(index='day_name', columns='period', values='Message', aggfunc='count').fillna(0)
+    user_heatmap = df.pivot_table(
+        index='day_name',
+        columns='period',
+        values='Message',
+        aggfunc='count'
+    ).fillna(0)
 
     return user_heatmap
 
 
+def group_ranking_table(df):
+
+    ranking = df.groupby('Group').agg(
+        Total_Messages=('Message', 'count'),
+        Total_Users=('User', 'nunique'),
+        Media_Shared=('Message', lambda x: (x == 'Media').sum())
+    ).reset_index()
+
+    ranking = ranking.sort_values(
+        by='Total_Messages',
+        ascending=False
+    )
+
+    return ranking
 
 
+def group_comparison(df):
+
+    comparison = df.groupby('Group')['Message'].count().sort_values(ascending=False)
+
+    return comparison
 
 
+def sentiment_analysis(selected_user, df):
+
+    if selected_user != 'Overall':
+        df = df[df['User'] == selected_user]
+
+    positive_words = [
+        'good', 'great', 'best', 'nice', 'happy', 'love', 'awesome',
+        'excellent', 'thanks', 'thank', 'perfect', 'amazing',
+        'acha', 'accha', 'mast', 'badhiya', 'shukriya'
+    ]
+
+    negative_words = [
+        'bad', 'sad', 'angry', 'hate', 'worst', 'problem', 'issue',
+        'error', 'fail', 'wrong', 'poor', 'nahi', 'bekar', 'gussa'
+    ]
+
+    positive = 0
+    negative = 0
+    neutral = 0
+
+    for message in df['Message']:
+        msg = str(message).lower()
+
+        if any(word in msg for word in positive_words):
+            positive += 1
+        elif any(word in msg for word in negative_words):
+            negative += 1
+        else:
+            neutral += 1
+
+    sentiment_df = pd.DataFrame({
+        'Sentiment': ['Positive', 'Negative', 'Neutral'],
+        'Count': [positive, negative, neutral]
+    })
+
+    return sentiment_df
+
+
+def chat_insights(df):
+
+    total_groups = df['Group'].nunique()
+    total_users = df['User'].nunique()
+    total_messages = df.shape[0]
+
+    top_group = df['Group'].value_counts().idxmax()
+    top_user = df['User'].value_counts().idxmax()
+
+    top_day = df['day_name'].value_counts().idxmax()
+    top_month = df['month'].value_counts().idxmax()
+
+    insights = {
+        "total_groups": total_groups,
+        "total_users": total_users,
+        "total_messages": total_messages,
+        "top_group": top_group,
+        "top_user": top_user,
+        "top_day": top_day,
+        "top_month": top_month
+    }
+
+    return insights
