@@ -6,6 +6,27 @@ import seaborn as sns
 import pandas as pd
 
 
+st.markdown("""
+<style>
+
+/* Date Input Text Black */
+.stDateInput input {
+    color: black !important;
+}
+
+/* Selectbox Text Black */
+.stSelectbox div[data-baseweb="select"] {
+    color: black !important;
+}
+
+/* Dropdown Selected Value Black */
+.stSelectbox * {
+    color: black !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 st.set_page_config(
     page_title="WhatsApp Chat Analyzer",
     page_icon="💬",
