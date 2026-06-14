@@ -28,11 +28,29 @@ def fetch_stats(selected_user, df):
     return num_messages, len(words), num_media_messages, len(links)
 
 
+def deleted_message_count(selected_user, df):
+
+    if selected_user != 'Overall':
+        df = df[df['User'] == selected_user]
+
+    deleted_count = df[
+        df['Message'].str.contains(
+            'deleted|This message was deleted|You deleted this message',
+            case=False,
+            na=False
+        )
+    ].shape[0]
+
+    return deleted_count
+
+
 def most_busy_users(df):
+
     x = df['User'].value_counts().head(10)
 
     new_df = round(
-        (df['User'].value_counts() / df.shape[0]) * 100, 2
+        (df['User'].value_counts() / df.shape[0]) * 100,
+        2
     ).reset_index()
 
     new_df.columns = ['User', 'Percent']
@@ -69,10 +87,13 @@ def create_wordcloud(selected_user, df):
 
     temp['Message'] = temp['Message'].apply(remove_stopwords)
 
-    if temp['Message'].str.cat(sep=" ").strip() == "":
-        return wc.generate("No Words Found")
+    text = temp['Message'].str.cat(sep=" ")
 
-    df_wc = wc.generate(temp['Message'].str.cat(sep=" "))
+    if text.strip() == "":
+        text = "No Words Found"
+
+    df_wc = wc.generate(text)
+
     return df_wc
 
 
@@ -131,8 +152,11 @@ def monthly_timeline(selected_user, df):
     timeline = timeline.sort_values(['year', 'month_num'])
 
     time = []
+
     for i in range(timeline.shape[0]):
-        time.append(timeline['month'].iloc[i] + "-" + str(timeline['year'].iloc[i]))
+        time.append(
+            timeline['month'].iloc[i] + "-" + str(timeline['year'].iloc[i])
+        )
 
     timeline['time'] = time
 
@@ -180,6 +204,11 @@ def activity_heatmap(selected_user, df):
     return user_heatmap
 
 
+def group_comparison(df):
+
+    return df.groupby('Group')['Message'].count().sort_values(ascending=False)
+
+
 def group_ranking_table(df):
 
     ranking = df.groupby('Group').agg(
@@ -196,35 +225,33 @@ def group_ranking_table(df):
     return ranking
 
 
-def group_comparison(df):
-
-    comparison = df.groupby('Group')['Message'].count().sort_values(ascending=False)
-
-    return comparison
-
-
 def sentiment_analysis(selected_user, df):
 
     if selected_user != 'Overall':
         df = df[df['User'] == selected_user]
 
     positive_words = [
-        'good', 'great', 'best', 'nice', 'happy', 'love', 'awesome',
-        'excellent', 'thanks', 'thank', 'perfect', 'amazing',
-        'acha', 'accha', 'mast', 'badhiya', 'shukriya'
+        'good', 'great', 'awesome', 'best',
+        'happy', 'love', 'excellent',
+        'nice', 'amazing', 'thank',
+        'thanks', 'mast', 'badhiya',
+        'acha', 'accha'
     ]
 
     negative_words = [
-        'bad', 'sad', 'angry', 'hate', 'worst', 'problem', 'issue',
-        'error', 'fail', 'wrong', 'poor', 'nahi', 'bekar', 'gussa'
+        'bad', 'hate', 'sad', 'problem',
+        'issue', 'error', 'worst',
+        'angry', 'bekar', 'gussa',
+        'wrong', 'fail'
     ]
 
     positive = 0
     negative = 0
     neutral = 0
 
-    for message in df['Message']:
-        msg = str(message).lower()
+    for msg in df['Message']:
+
+        msg = str(msg).lower()
 
         if any(word in msg for word in positive_words):
             positive += 1
@@ -243,24 +270,11 @@ def sentiment_analysis(selected_user, df):
 
 def chat_insights(df):
 
-    total_groups = df['Group'].nunique()
-    total_users = df['User'].nunique()
-    total_messages = df.shape[0]
-
-    top_group = df['Group'].value_counts().idxmax()
-    top_user = df['User'].value_counts().idxmax()
-
-    top_day = df['day_name'].value_counts().idxmax()
-    top_month = df['month'].value_counts().idxmax()
-
     insights = {
-        "total_groups": total_groups,
-        "total_users": total_users,
-        "total_messages": total_messages,
-        "top_group": top_group,
-        "top_user": top_user,
-        "top_day": top_day,
-        "top_month": top_month
+        "top_group": df['Group'].value_counts().idxmax(),
+        "top_user": df['User'].value_counts().idxmax(),
+        "top_day": df['day_name'].value_counts().idxmax(),
+        "top_month": df['month'].value_counts().idxmax()
     }
 
     return insights
