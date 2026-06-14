@@ -264,19 +264,3 @@ def chat_insights(df):
     }
 
     return insights
-
-
-def deleted_message_count(selected_user, df):
-
-    if selected_user != 'Overall':
-        df = df[df['User'] == selected_user]
-
-    deleted_count = df[
-        df['Message'].str.contains(
-            'deleted',
-            case=False,
-            na=False
-        )
-    ].shape[0]
-
-    return deleted_count
