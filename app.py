@@ -63,9 +63,7 @@ st.markdown("""
 <h1 style='text-align:center; color:#128C7E;'>
 💬 WhatsApp Chat Analyzer Dashboard
 </h1>
-<p style='text-align:center; font-size:18px;'>
-Analyze Messages • Groups • Users • Emojis • Media • Links • Sentiment
-</p>
+
 """, unsafe_allow_html=True)
 
 
