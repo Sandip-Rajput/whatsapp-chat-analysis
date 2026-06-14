@@ -163,10 +163,16 @@ if uploaded_files:
     user_list.insert(0, "Overall")
 
     selected_user = st.sidebar.selectbox("Show analysis", user_list)
+    
 
     if st.sidebar.button("Show Analysis"):
 
         num_messages, words, num_media_messages, num_links = helper.fetch_stats(selected_user, df)
+
+        deleted_count = helper.deleted_message_count(
+        selected_user,
+        df
+        )
 
         st.title("📊 Top Statistics")
 
@@ -203,6 +209,18 @@ if uploaded_files:
                 <div class="metric-value">{num_links}</div>
             </div>
             """, unsafe_allow_html=True)
+
+        col5 = st.columns(1)[0]
+
+        with col5:
+        st.markdown(f"""
+        <div class="metric-card">
+        <div class="metric-title">Deleted Messages</div>
+        <div class="metric-value">{deleted_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        
 
         st.markdown("---")
 
