@@ -50,6 +50,15 @@ if uploaded_files:
 
     if st.sidebar.button("Show Analysis"):
 
+        csv= df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+        label="📥 Download Chat Report",
+        data=csv,
+        file_name="whatsapp_chat_analysis.csv",
+        mime="text/csv"
+        )
+        
+    
         num_messages, words, num_media_messages, num_links = helper.fetch_stats(selected_user, df)
 
         st.title("Top Statistics")
