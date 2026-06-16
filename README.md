@@ -8,7 +8,7 @@ The project performs message analysis, user activity analysis, emoji analysis, w
 
 ---
 ## Live Demo
-https://whatsapp-chat-analysis-sandip-rajput.streamlit.app
+https://whatsapp-chat-analysis-sandip-rajput.streamlit.app/
 ## Problem Statement
 
 WhatsApp conversations contain a large amount of information, but manually identifying communication patterns, active users, popular words, and chat trends is difficult.
